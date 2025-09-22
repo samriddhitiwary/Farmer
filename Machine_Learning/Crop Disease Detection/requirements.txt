@@ -1,0 +1,26 @@
+# Core ML / Data Science
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+
+# Deep Learning Frameworks
+tensorflow
+keras
+torch
+torchvision
+torchaudio
+
+# Image Processing
+opencv-python
+pillow
+albumentations
+
+# Utilities
+tqdm
+notebook
+jupyterlab
+
+# Kaggle API (dataset downloads)
+kaggle
