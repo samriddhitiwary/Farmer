@@ -30,8 +30,12 @@ __pycache__/
 *.egg-info/
 .env
 
-# ML dataset folder
+
+# ML dataset folders
 Machine_Learning/Crop Disease Detection/PlantVillage/
+Machine_Learning/Crop Quality Grading/test/
+Machine_Learning/Crop Quality Grading/train/
+
 
 # VSCode/IDE
 .vscode/
