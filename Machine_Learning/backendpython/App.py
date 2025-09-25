@@ -20,11 +20,23 @@ app.add_middleware(
 # --- Configuration Variables ---
 MODEL_PATH = r"C:\Users\samri\cod\git\Farmer\Machine_Learning\Crop Quality Grading\best_model.h5"
 INPUT_SIZE = (180, 180) 
-classes = ['Bad Quality_Fruits', 'Good Quality_Fruits', 'Mixed Qualit_Fruits'] # Assumes this order is correct
+
+# --- CRITICAL CHANGE: MAPPING TO A, B, C GRADES ---
+# Assuming the model's output index order is:
+# Index 0: 'Bad Quality_Fruits' (Now maps to C)
+# Index 1: 'Good Quality_Fruits' (Now maps to A)
+# Index 2: 'Mixed Qualit_Fruits' (Now maps to B)
+# *YOU MUST VERIFY THIS INDEX ORDER based on your training class_names:*
+# If class_names was ['Bad Quality_Fruits', 'Good Quality_Fruits', 'Mixed Qualit_Fruits'] (Alphabetical)
+
+# Use a clear mapping list for the backend:
+BACKEND_CLASSES = ['Bad Quality_Fruits', 'Good Quality_Fruits', 'Mixed Qualit_Fruits']
+
+# Define the final output grades corresponding to the order of BACKEND_CLASSES
+OUTPUT_GRADES = ['C', 'A', 'B'] # Map: C=Bad, A=Good, B=Mixed
 
 model = None
 try:
-    # Set compile=False for safer loading
     model = load_model(MODEL_PATH, compile=False) 
     print("Model loaded successfully.")
 except Exception as e:
@@ -40,33 +52,33 @@ async def grade_crop(file: UploadFile = File(...)):
         contents = await file.read()
         img = Image.open(BytesIO(contents)).convert('RGB').resize(INPUT_SIZE)
         
-        # --- CRITICAL FIX: REMOVED NORMALIZATION ---
-        # Data is kept in the [0, 255] range to match the model's training input.
+        # Preprocessing: Keeping data unnormalized [0, 255] as per the fix
         img_array = np.array(img, dtype=np.float32) 
-        # DO NOT divide by 255.0 here.
-        
-        # Add batch dimension (1, H, W, C)
         img_array = np.expand_dims(img_array, axis=0)
 
-        # 1. Get raw prediction output
+        # Prediction
         prediction_output = model.predict(img_array)
-        
-        # 2. Apply Softmax to convert logits (or probabilities) into normalized probabilities
         probs = softmax(prediction_output[0]).numpy()
         
-        # Debugging: Print results to console
-        print(f"\n--- DEBUG INFO ---")
-        print(f"Probabilities (Post-softmax): {probs}")
-        print(f"--- END DEBUG INFO ---\n")
-
         predicted_index = int(np.argmax(probs))
-        predicted_class = classes[predicted_index]
+        
+        # --- APPLY NEW GRADE MAPPING ---
+        predicted_grade = OUTPUT_GRADES[predicted_index]
+        # -----------------------------
+        
         confidence = float(probs[predicted_index] * 100)
         
+        # Debugging: Show the detailed mapping in the console output
+        probability_map = {
+            f'{OUTPUT_GRADES[i]} ({BACKEND_CLASSES[i]})': f"{probs[i]*100:.2f}%" 
+            for i in range(len(BACKEND_CLASSES))
+        }
+        print(f"\n--- DEBUG INFO ---\nProbabilities: {probability_map}\n--- END DEBUG INFO ---\n")
+        
         return {
-            "grade": predicted_class, 
+            "grade": predicted_grade, # Returns A, B, or C
             "confidence": confidence,
-            "all_probabilities": {c: f"{p*100:.2f}%" for c, p in zip(classes, probs)}
+            "all_probabilities": probability_map
         }
 
     except Exception as e:
