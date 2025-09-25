@@ -1,13 +1,15 @@
 import React from "react";
 import { Provider as PaperProvider } from "react-native-paper";
 import Toast from "react-native-toast-message";
-import RegisterFarmer from "./src/screens/RegisterFarmer";
+import { ExpoRoot } from "expo-router";
 
 export default function App() {
+  const ctx = require.context("./app");
+
   return (
     <PaperProvider>
-      <RegisterFarmer />
-      <Toast /> {/* Required for toasts */}
+      <ExpoRoot context={ctx} />
+      <Toast />
     </PaperProvider>
   );
 }

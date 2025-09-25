@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ImageBackground, Text } from "react-native";
 import { TextInput, Button } from "react-native-paper";
-import { registerUser } from "../services/api";
+import {registerUser} from "../src/services/api"
+import { useRouter } from "expo-router";
+import Home from "./Home";
 
 export default function RegisterFarmer({ navigation }) {
+  const router = useRouter(); 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +25,8 @@ export default function RegisterFarmer({ navigation }) {
       };
       const res = await registerUser(userData);
       alert("Farmer registered successfully!");
+      router.replace("/Home");
+      //  navigation.navigate("Home");
       console.log(res.data);
     } catch (err) {
       console.log(err);
@@ -31,7 +36,7 @@ export default function RegisterFarmer({ navigation }) {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/profile.avif")}
+      source={require("../assets/images/profile.avif")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
