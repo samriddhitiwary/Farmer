@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ImageBackground, Text } from "react-native";
 import { TextInput, Button } from "react-native-paper";
-import {registerUser} from "../src/services/api"
+import { registerUser } from "../src/services/api";
 import { useRouter } from "expo-router";
-import Home from "./Home";
 
-export default function RegisterFarmer({ navigation }) {
-  const router = useRouter(); 
+export default function RegisterFarmer() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,23 +13,34 @@ export default function RegisterFarmer({ navigation }) {
   const [address, setAddress] = useState("");
 
   const handleRegister = async () => {
+    if (!name || !email || !password) {
+      alert("Name, email, and password are required!");
+      return;
+    }
+
     try {
       const userData = {
         name,
         email,
-        password,
+        password, // backend hashes it
         role: "farmer",
         phone,
         location: { lat: 0, lng: 0, address },
       };
+
       const res = await registerUser(userData);
-      alert("Farmer registered successfully!");
-      router.replace("/Home");
-      //  navigation.navigate("Home");
-      console.log(res.data);
+
+      if (res.status === 201) {
+        alert("Farmer registered successfully!");
+
+        // ✅ Navigate to Home and pass the farmer ID as query param
+        router.replace(`/Home?id=${res.data.userId}`);
+      } else {
+        alert(res.data.message || "Registration failed!");
+      }
     } catch (err) {
-      console.log(err);
-      alert("Registration failed!");
+      console.log("Registration error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Registration failed!");
     }
   };
 
@@ -49,7 +59,6 @@ export default function RegisterFarmer({ navigation }) {
           value={name}
           onChangeText={setName}
           style={styles.input}
-          theme={{ roundness: 10 }}
         />
         <TextInput
           label="Email"
@@ -58,7 +67,6 @@ export default function RegisterFarmer({ navigation }) {
           onChangeText={setEmail}
           keyboardType="email-address"
           style={styles.input}
-          theme={{ roundness: 10 }}
         />
         <TextInput
           label="Password"
@@ -67,7 +75,6 @@ export default function RegisterFarmer({ navigation }) {
           onChangeText={setPassword}
           secureTextEntry
           style={styles.input}
-          theme={{ roundness: 10 }}
         />
         <TextInput
           label="Phone"
@@ -76,7 +83,6 @@ export default function RegisterFarmer({ navigation }) {
           onChangeText={setPhone}
           keyboardType="phone-pad"
           style={styles.input}
-          theme={{ roundness: 10 }}
         />
         <TextInput
           label="Address"
@@ -85,14 +91,12 @@ export default function RegisterFarmer({ navigation }) {
           onChangeText={setAddress}
           style={styles.input}
           multiline
-          theme={{ roundness: 10 }}
         />
 
         <Button
           mode="contained"
           onPress={handleRegister}
           style={styles.button}
-          contentStyle={{ paddingVertical: 6 }}
         >
           Register
         </Button>
@@ -102,30 +106,9 @@ export default function RegisterFarmer({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-  overlay: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
-  },
-  input: {
-    marginBottom: 12,
-    backgroundColor: "rgba(255,255,255,0.9)",
-  },
-  title: {
-    fontSize: 26,
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  button: {
-    marginTop: 15,
-    borderRadius: 10,
-  },
+  backgroundImage: { flex: 1, width: "100%", height: "100%" },
+  overlay: { flex: 1, padding: 20, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.4)" },
+  input: { marginBottom: 12, backgroundColor: "rgba(255,255,255,0.9)" },
+  title: { fontSize: 26, marginBottom: 20, textAlign: "center", color: "#fff", fontWeight: "bold" },
+  button: { marginTop: 15, borderRadius: 10 },
 });
